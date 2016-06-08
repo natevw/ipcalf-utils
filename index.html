@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Random utilities by natevw</title>
+</head><body>
+  <h1>Utilities written by natevw, for natevw.</h1>
+  You may use them too.
+  
+  <div id=pick_random>
+    <h2>Random chooser</h2>
+    <form>
+      <input placeholder="space separated options"> <button>Decide</button><br>
+      <b class=result></b>
+    </form>
+    <script>
+      document.querySelector('#pick_random form').addEventListener('submit', function (evt) {
+        evt.preventDefault();
+        
+        var s = this.querySelector('input').value,
+            a = s.split(' '),
+            i = Math.floor(Math.random() * a.length);
+        this.querySelector('.result').textContent = a[i];
+      }, false);
+    </script>
+  </div>
+</body></html>
