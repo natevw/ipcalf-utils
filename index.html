@@ -29,4 +29,29 @@
     …is on my <a href="http://www.qsl.net/af7tb/">ham homepage</a>.
   </div>
   
+  <div id=ostypes>
+    <h2>OSType/FourCC magic number converter</h2>
+    <form>
+      <input class=hex placeholder="hex"> <input class=ascii placeholder="CODE">
+      <b class=result></b>
+    </form>
+    <script>
+      document.querySelector('#ostypes .hex').addEventListener('input', function (evt) {
+        var raw = parseInt(this.value, 16),
+            codes = [];
+        for (var i = 0; i < 4; ++i) {
+          codes.unshift((raw >>> 8*i) & 0xFF);
+        }
+        document.querySelector('#ostypes .ascii').value = String.fromCharCode.apply(null, codes);
+      }, false);
+      document.querySelector('#ostypes .ascii').addEventListener('input', function (evt) {
+        var raw = 0;
+        this.value.split('').reverse().forEach(function (c,i) {
+          raw |= (c.charCodeAt(0) << 8*i);
+        });
+        document.querySelector('#ostypes .hex').value = "0x" + raw.toString(16);
+      }, false);
+    </script>
+  </div>
+  
 </body></html>
