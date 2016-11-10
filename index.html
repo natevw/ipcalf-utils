@@ -62,4 +62,21 @@
     </script>
   </div>
   
+  <div id=dbm>
+    <h2>dBm ↔︎ watts converter</h2>
+    <form>
+      <input class=dbm placeholder="dBm"> <input class=watts placeholder="watts">
+    </form>
+    <script>
+      var dbmEl = document.querySelector('#dbm .dbm'),
+          wattsEl = document.querySelector('#dbm .watts');
+      dbmEl.addEventListener('input', function () {
+        wattsEl.value = Math.pow(10, +this.value / 10) / 1000;
+      }, false);
+      wattsEl.addEventListener('input', function () {
+        dbmEl.value = Math.log10(+this.value * 1000) * 10;
+      }, false);
+    </script>
+  </div>
+  
 </body></html>
