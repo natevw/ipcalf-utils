@@ -67,7 +67,7 @@
     <form>
       <input class=dbm placeholder="dBm"> <input class=watts placeholder="watts">
     </form>
-    <script>
+    <script>+function () {
       var dbmEl = document.querySelector('#dbm .dbm'),
           wattsEl = document.querySelector('#dbm .watts');
       dbmEl.addEventListener('input', function () {
@@ -76,7 +76,35 @@
       wattsEl.addEventListener('input', function () {
         dbmEl.value = Math.log10(+this.value * 1000) * 10;
       }, false);
-    </script>
+    }()</script>
   </div>
   
+  <div id=ppwatts>
+    <h2>Voltage to power converter</h2>
+    <form>
+     <label><input class=volts placeholder="potential difference"> Vp-p</label><br>
+     <label><input class=ohms placeholder="load resistance" value=50> Ω</label><br>
+     <label><input class=watts placeholder="power"> W</label>
+    </form>
+    <script>+function () {
+      var voltsEl = document.querySelector('#ppwatts .volts'),
+          ohmsEl = document.querySelector('#ppwatts .ohms'),
+          wattsEl = document.querySelector('#ppwatts .watts');
+      ohmsEl.addEventListener('input', function () {
+        ohmsEl.style.background = "yellow";
+      }, false);
+      voltsEl.addEventListener('input', function () {
+        var rms = +voltsEl.value * Math.SQRT1_2 / 2;
+        wattsEl.value = rms*rms / +ohmsEl.value;
+        ohmsEl.style.background = "";
+      }, false);
+      wattsEl.addEventListener('input', function () {
+        var w = +wattsEl.value,
+            rms = Math.sqrt(w * +ohmsEl.value);
+        voltsEl.value = rms * Math.SQRT2 * 2;
+        ohmsEl.style.background = "";
+      }, false);
+    }()</script>
+  </div>
+
 </body></html>
