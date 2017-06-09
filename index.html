@@ -33,8 +33,86 @@
   </div>
   
   <div id=grid_square>
-    <h2>Grid square autolocator</h2>
-    …is on my <a href="http://www.qsl.net/af7tb/">ham homepage</a>.
+    <h2>Grid square autolocator / QTH Utility</h2>
+    <form>
+      <label>Latitude: <input class="lat"></input></label><br>
+      <label>Longitude: <input class="lon"></input></label><br>
+      <span class="spinner" style="display: none;">requesting…</span> <button type="button">Auto-locate</button><br>
+      <label><a href="https://en.wikipedia.org/wiki/Maidenhead_Locator_System">Grid square</a>: <input readonly class="sqr"></input></label>
+    </form>
+    <script>
+      var form = document.querySelector('#grid_square form'),
+          latField = form.querySelector('.lat'),
+          lonField = form.querySelector('.lon'),
+          sqrField = form.querySelector('.sqr'),
+          spinner = form.querySelector('.spinner');
+      latField.addEventListener('input', function () {
+        var parts = this.value.split(/,\s*/);
+        if (parts.length > 1) {
+            latField.value = parts[0];
+            lonField.value = parts[1];
+            lonField.focus();
+        }
+        updateSquare();
+      }, false);
+      lonField.addEventListener('input', updateSquare, false);
+      function updateSquare() {
+        sqrField.value = calcSquare(+latField.value, +lonField.value);
+      }
+      
+      function calcSquare(lat, lon) {
+        function extend(arr, step, divs) {
+          var val,
+              x = arr.pop(),
+              idx = Math.floor(x/step),
+              rem = x - idx * step;
+          if (divs === 10) {
+            val = idx.toFixed();
+          } else if (divs === 18) {
+            val = "ABCDEFGHIJKLMNOPQRR"[idx];
+          } else if (divs === 24) {
+            val = "abcdefghijklmnopqrstuvwxx"[idx];
+          } else throw Error("Unsupported base!");
+          arr.push(val);
+          arr.push(rem);
+          return arr;
+        }
+        function zip() {
+            var out = [],
+                len = arguments[0].length;
+            for (var i = 0; i < len; i += 1) {
+              for (var j = 0; j < arguments.length; j += 1) {
+                out.push(arguments[j][i]);
+              }
+            }
+            return out;
+        }
+        
+        var latArr = extend(extend(extend([lat+90], 10, 18), 1, 10), 2.5/60, 24),
+            lonArr = extend(extend(extend([lon+180], 20, 18), 2, 10), 5/60, 24);
+        latArr.pop();
+        lonArr.pop();
+        // var lat = 42.862943, lon = -97.541669, result = "EN12fu";
+        return zip(lonArr, latArr).join('');
+      }
+      
+      form.querySelector('button').addEventListener('click', function () {
+        spinner.style.display = 'inline';
+        navigator.geolocation.getCurrentPosition(function (pos) {
+          spinner.style.display = 'none';
+          latField.value = pos.coords.latitude;
+          lonField.value = pos.coords.longitude;
+          updateSquare();
+        }, function (err) {
+          spinner.style.display = 'none';
+          alert(err.message);
+        }, {
+          enableHighAccuracy: true,
+          timeout: 30e3,
+          maximumAge: 0
+        });
+      }, false);
+    </script>
   </div>
   
   <div id=ostypes>
