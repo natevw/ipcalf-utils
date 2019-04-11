@@ -159,9 +159,11 @@
       <input class=rgb size="25" placeholder="rgb(0,0,0)">
     </form>
     <script>
-      // TODO: figure out why small-alpha colors get muddled through this
+      // NOTE: small-alpha colors get muddled through this
       // e.g. '#1080F0FF' ➠ 'rgb(16,128,240)' despite '#1080F080' ➠ 'rgba(16,128,239,50%)'
       // and 'rgba(0,128,255,5%)' ➠ '#0089ff0d' despite 'rgba(0,128,255,1)' ➠ '#0080ff'
+      // This is due to canvas using pre-multiplied alpha internally: https://stackoverflow.com/a/23501676/179583
+      // Figured this out via https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_src equations.
       function csscolors_getColor(str) {
         // HT: https://stackoverflow.com/a/19366389/179583
         var ctx = document.querySelector('#csscolors canvas').getContext('2d');
