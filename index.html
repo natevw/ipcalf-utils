@@ -139,6 +139,61 @@
     </script>
   </div>
   
+  <div id=csscolors>
+    <style>
+      #csscolors canvas {
+        outline: 1px solid #eee;
+        vertical-align: text-bottom;
+      }
+      #csscolors canvas.checkerboard {
+        /* HT https://stackoverflow.com/a/51117224/179583 */
+        background-position: 0px 0px, 5px 5px;
+        background-size: 10px 10px;
+        background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+      }
+    </style>
+    <h2>hex ↔︎ rgb color converter</h2>
+    <form>
+      <input class=hex size="10" placeholder="#FFFFFF">
+      <canvas class="checkerboard" width="25" height="25">[2d canvas required]</canvas>
+      <input class=rgb size="25" placeholder="rgb(0,0,0)">
+    </form>
+    <script>
+      // TODO: figure out why small-alpha colors get muddled through this
+      // e.g. '#1080F0FF' ➠ 'rgb(16,128,240)' despite '#1080F080' ➠ 'rgba(16,128,239,50%)'
+      // and 'rgba(0,128,255,5%)' ➠ '#0089ff0d' despite 'rgba(0,128,255,1)' ➠ '#0080ff'
+      function csscolors_getColor(str) {
+        // HT: https://stackoverflow.com/a/19366389/179583
+        var ctx = document.querySelector('#csscolors canvas').getContext('2d');
+        ctx.fillStyle = str;
+        ctx.globalCompositeOperation = 'copy';
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        return ctx.getImageData(0, 0, 1, 1).data;
+      }
+      
+      document.querySelector('#csscolors .hex').addEventListener('input', function (evt) {
+        var arr = csscolors_getColor(evt.target.value);
+        if (arr[3] === 255) arr = arr.slice(0,-1);
+        else {
+          // NOTE: we should divide by 255, but 256 yields nicer results…
+          var alpha = (100 * arr[3] / 256).toFixed(0) + '%';
+          arr = Array.prototype.slice.call(arr,0,-1).concat(alpha);
+        }
+        document.querySelector('#csscolors .rgb').value = [
+          (arr.length === 4) ? "rgba" : "rgb",
+          "(",arr.join(),")"
+        ].join('');
+      }, false);
+      document.querySelector('#csscolors .rgb').addEventListener('input', function (evt) {
+        var arr = csscolors_getColor(evt.target.value);
+        if (arr[3] === 255) arr = arr.slice(0,-1);
+        document.querySelector('#csscolors .hex').value = "#" + Array.prototype.map.call(arr, function (x,idx) {
+          return (0x100 + x).toString(16).slice(1);
+        }).join('');
+      }, false);
+    </script>
+  </div>
+  
   <div id=dbm>
     <h2>dBm ↔︎ watts converter</h2>
     <form>
