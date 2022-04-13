@@ -310,7 +310,14 @@
         var freqs = freqsStr.split(' ').map(function (s) { return +s; }),
             freq = freqs.reduce(function (sum, n) { return sum + n; }) / freqs.length;
         freqEl.value = displayNum(freq / freqMult, 6);
-        freqEl.dispatchEvent(new Event('input'));
+        if (!lossEl.value) {
+          lossEl.value = 0;
+          lossEl.dispatchEvent(new Event('input'));
+        } else if (!distEl.value) {
+          distEl.dispatchEvent(new Event('input'));
+        } else {
+          freqEl.dispatchEvent(new Event('input'));
+        }
       }, false);
       
     }()</script>
