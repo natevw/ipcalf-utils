@@ -196,6 +196,126 @@
     </script>
   </div>
   
+  <div id=fspl>
+    <h2>Free-space path loss calculator</h2>
+    <!-- TODO: https://en.wikipedia.org/wiki/Two-ray_ground-reflection_model -->
+    <!-- and/or TODO: https://en.wikipedia.org/wiki/Line-of-sight_propagation -->
+    <form>
+      <label>Loss: <input class=loss placeholder="FSPL"> dB</label><br/>
+      <label>Distance: <input class=dist placeholder="distance"> <select>
+        <option value="1e-3">millimeters</option>
+        <option value="1" selected>meters</option>
+        <option value="1e3">kilometers</option>
+        <option value="0.0254">inches</option>
+        <option value="0.3048">feet</option>
+        <option value="1609.344">miles</option>
+        <option value="6.3781e6"><abbr title="earth radius">R🜨</abbr></option>
+        <option value="3.84399e8"><abbr title="lunar distance">LD</abbr></option>
+        <option value="1.495978707e11"><abbr title="astronimcal unit">AU</abbr></option>
+        <option value="9.4607e15">lightyear</option>
+        <option value="3.0857e16">parsec</option>
+      </select></label><br/>
+      <label>Frequency: <input class=freq placeholder="frequency"> <select>
+        <option value="1e-3">mHz</option>
+        <option value="1">Hz</option>
+        <option value="1e3">kHz</option>
+        <option value="1e6" selected>MHz</option>
+        <option value="1e9">GHz</option>
+        <option value="1e12">THz</option>
+      </select></label>
+      <br/>
+      <fieldset class=bands style="border: none">
+        US bands:</br>
+        <button type="button" data-freq="135.7e3 137.8e3">2200m</button>
+        <button type="button" data-freq="472e3 479e3">630m</button>
+        <button type="button" data-freq="530e3 1700e3">AM</button>
+        <button type="button" data-freq="1.8e6 2.0e6">160m</button>
+        <button type="button" data-freq="3.5e6 4.0e6">80m</button>
+        <button type="button" data-freq="5.3585e6">60m</button>
+        <button type="button" data-freq="7.0e6 7.3e6">40m</button>
+        <button type="button" data-freq="10.1e6 10.15e6">30m</button>
+        <button type="button" data-freq="14.00e6 14.35e6">20m</button>
+        <button type="button" data-freq="18.068e6 18.168e6">17m</button>
+        <button type="button" data-freq="21.00e6 21.45e6">15m</button>
+        <button type="button" data-freq="24.89e6 24.99e6">12m</button>
+        <button type="button" data-freq="28.0e6 29.7e6">10m</button>
+        <br>
+        <button type="button" data-freq="50.1e6 54.0e6">6m</button>
+        <button type="button" data-freq="88e6 108e6">FM</button>
+        <button type="button" data-freq="144e6 148e6">2m</button>
+        <button type="button" data-freq="222e6 225e6">1.25m</button>
+        <button type="button" data-freq="433e6">70cm</button>
+        <button type="button" data-freq="902e6 928e6">33cm</button>
+        <button type="button" data-freq="1240e6 1300e6">23cm</button>
+        <button type="button" data-freq="1575.42e6">GPS L1</button>
+        <button type="button" data-freq="2.4e9 2.5e9">2.4GHz</button>
+        <button type="button" data-freq="5.725e9 5.875e9">5.8GHz</button>
+        <button type="button" data-freq="461.219e12">650nm laser</button>
+      </fieldset>
+    </form>
+    <script>+function () {
+      var scopeEl = document.querySelector('#fspl'),
+          lossEl = scopeEl.querySelector('.loss'),
+          distEl = scopeEl.querySelector('.dist'),
+          freqEl = scopeEl.querySelector('.freq'),
+          distMultEl = scopeEl.querySelector('.dist + select'),
+          freqMultEl = scopeEl.querySelector('.freq + select'),
+          bandsGroup = scopeEl.querySelector('.bands');
+      
+      var distMult, freqMult;
+      function updateMultipliers() {
+        distMult = +distMultEl.value;
+        freqMult = +freqMultEl.value;
+      }
+      function displayNum(n, P) {
+        var d = Math.abs(Math.log10(Math.abs(n)));
+        if (d > P) return n.toExponential(P);
+        else return n.toFixed(P);
+      }
+      
+      var conv = (4 * Math.PI) / 299792458;
+      updateMultipliers();
+      lossEl.addEventListener('input', function () {
+        var loss = +lossEl.value,
+            freq = +freqEl.value * freqMult;
+        var dist = Math.pow(10, loss / 20 - Math.log10(freq * conv));
+        distEl.value = displayNum(dist, 3);
+      }, false);
+      distEl.addEventListener('input', function () {
+        var dist = +distEl.value * distMult,
+            freq = +freqEl.value * freqMult;
+        var loss = 20 * (Math.log10(dist) + Math.log10(freq) + Math.log10(conv));
+        lossEl.value = displayNum(loss, 3);
+      }, false);
+      freqEl.addEventListener('input', function () {
+        distEl.dispatchEvent(new Event('input'));
+      }, false);
+      
+      distMultEl.addEventListener('change', function (evt) {
+        var dist = +distEl.value * distMult
+        updateMultipliers();
+        distEl.value = displayNum(dist / distMult, 4);
+      }, false);
+      
+      freqMultEl.addEventListener('change', function (evt) {
+        var freq = +freqEl.value * freqMult
+        updateMultipliers();
+        freqEl.value = displayNum(freq / freqMult, 6);
+      }, false);
+      
+      bandsGroup.addEventListener('click', function (evt) {
+        var freqsStr = evt.target.getAttribute('data-freq');
+        if (!freqsStr) return;
+        
+        var freqs = freqsStr.split(' ').map(function (s) { return +s; }),
+            freq = freqs.reduce(function (sum, n) { return sum + n; }) / freqs.length;
+        freqEl.value = displayNum(freq / freqMult, 6);
+        freqEl.dispatchEvent(new Event('input'));
+      }, false);
+      
+    }()</script>
+  </div>
+  
   <div id=dbm>
     <h2>dBm ↔︎ watts converter</h2>
     <form>
