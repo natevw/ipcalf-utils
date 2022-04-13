@@ -32,6 +32,87 @@
     </script>
   </div>
   
+  <div id=ostypes>
+    <h2>OSType/FourCC magic number converter</h2>
+    <form>
+      <input class=hex placeholder="hex"> <input class=ascii placeholder="CODE">
+    </form>
+    <script>
+      document.querySelector('#ostypes .hex').addEventListener('input', function (evt) {
+        var raw = parseInt(this.value, 16),
+            codes = [];
+        for (var i = 0; i < 4; ++i) {
+          codes.unshift((raw >>> 8*i) & 0xFF);
+        }
+        document.querySelector('#ostypes .ascii').value = String.fromCharCode.apply(null, codes);
+      }, false);
+      document.querySelector('#ostypes .ascii').addEventListener('input', function (evt) {
+        var raw = 0;
+        this.value.split('').reverse().forEach(function (c,i) {
+          raw |= (c.charCodeAt(0) << 8*i);
+        });
+        document.querySelector('#ostypes .hex').value = "0x" + raw.toString(16);
+      }, false);
+    </script>
+  </div>
+  
+  <div id=csscolors>
+    <style>
+      #csscolors canvas {
+        outline: 1px solid #eee;
+        vertical-align: text-bottom;
+      }
+      #csscolors canvas.checkerboard {
+        /* HT https://stackoverflow.com/a/51117224/179583 */
+        background-position: 0px 0px, 5px 5px;
+        background-size: 10px 10px;
+        background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+      }
+    </style>
+    <h2>hex ↔︎ rgb color converter</h2>
+    <form>
+      <input class=hex size="10" placeholder="#FFFFFF">
+      <canvas class="checkerboard" width="25" height="25">[2d canvas required]</canvas>
+      <input class=rgb size="25" placeholder="rgb(0,0,0)">
+    </form>
+    <script>
+      // NOTE: small-alpha colors get muddled through this
+      // e.g. '#1080F0FF' ➠ 'rgb(16,128,240)' despite '#1080F080' ➠ 'rgba(16,128,239,50%)'
+      // and 'rgba(0,128,255,5%)' ➠ '#0089ff0d' despite 'rgba(0,128,255,1)' ➠ '#0080ff'
+      // This is due to canvas using pre-multiplied alpha internally: https://stackoverflow.com/a/23501676/179583
+      // Figured this out via https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_src equations.
+      function csscolors_getColor(str) {
+        // HT: https://stackoverflow.com/a/19366389/179583
+        var ctx = document.querySelector('#csscolors canvas').getContext('2d');
+        ctx.fillStyle = str;
+        ctx.globalCompositeOperation = 'copy';
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        return ctx.getImageData(0, 0, 1, 1).data;
+      }
+      
+      document.querySelector('#csscolors .hex').addEventListener('input', function (evt) {
+        var arr = csscolors_getColor(evt.target.value);
+        if (arr[3] === 255) arr = arr.slice(0,-1);
+        else {
+          // NOTE: we should divide by 255, but 256 yields nicer results…
+          var alpha = (100 * arr[3] / 256).toFixed(0) + '%';
+          arr = Array.prototype.slice.call(arr,0,-1).concat(alpha);
+        }
+        document.querySelector('#csscolors .rgb').value = [
+          (arr.length === 4) ? "rgba" : "rgb",
+          "(",arr.join(),")"
+        ].join('');
+      }, false);
+      document.querySelector('#csscolors .rgb').addEventListener('input', function (evt) {
+        var arr = csscolors_getColor(evt.target.value);
+        if (arr[3] === 255) arr = arr.slice(0,-1);
+        document.querySelector('#csscolors .hex').value = "#" + Array.prototype.map.call(arr, function (x,idx) {
+          return (0x100 + x).toString(16).slice(1);
+        }).join('');
+      }, false);
+    </script>
+  </div>
+  
   <div id=grid_square>
     <h2>Grid square autolocator / QTH Utility</h2>
     <form>
@@ -111,87 +192,6 @@
           timeout: 30e3,
           maximumAge: 0
         });
-      }, false);
-    </script>
-  </div>
-  
-  <div id=ostypes>
-    <h2>OSType/FourCC magic number converter</h2>
-    <form>
-      <input class=hex placeholder="hex"> <input class=ascii placeholder="CODE">
-    </form>
-    <script>
-      document.querySelector('#ostypes .hex').addEventListener('input', function (evt) {
-        var raw = parseInt(this.value, 16),
-            codes = [];
-        for (var i = 0; i < 4; ++i) {
-          codes.unshift((raw >>> 8*i) & 0xFF);
-        }
-        document.querySelector('#ostypes .ascii').value = String.fromCharCode.apply(null, codes);
-      }, false);
-      document.querySelector('#ostypes .ascii').addEventListener('input', function (evt) {
-        var raw = 0;
-        this.value.split('').reverse().forEach(function (c,i) {
-          raw |= (c.charCodeAt(0) << 8*i);
-        });
-        document.querySelector('#ostypes .hex').value = "0x" + raw.toString(16);
-      }, false);
-    </script>
-  </div>
-  
-  <div id=csscolors>
-    <style>
-      #csscolors canvas {
-        outline: 1px solid #eee;
-        vertical-align: text-bottom;
-      }
-      #csscolors canvas.checkerboard {
-        /* HT https://stackoverflow.com/a/51117224/179583 */
-        background-position: 0px 0px, 5px 5px;
-        background-size: 10px 10px;
-        background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
-      }
-    </style>
-    <h2>hex ↔︎ rgb color converter</h2>
-    <form>
-      <input class=hex size="10" placeholder="#FFFFFF">
-      <canvas class="checkerboard" width="25" height="25">[2d canvas required]</canvas>
-      <input class=rgb size="25" placeholder="rgb(0,0,0)">
-    </form>
-    <script>
-      // NOTE: small-alpha colors get muddled through this
-      // e.g. '#1080F0FF' ➠ 'rgb(16,128,240)' despite '#1080F080' ➠ 'rgba(16,128,239,50%)'
-      // and 'rgba(0,128,255,5%)' ➠ '#0089ff0d' despite 'rgba(0,128,255,1)' ➠ '#0080ff'
-      // This is due to canvas using pre-multiplied alpha internally: https://stackoverflow.com/a/23501676/179583
-      // Figured this out via https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_src equations.
-      function csscolors_getColor(str) {
-        // HT: https://stackoverflow.com/a/19366389/179583
-        var ctx = document.querySelector('#csscolors canvas').getContext('2d');
-        ctx.fillStyle = str;
-        ctx.globalCompositeOperation = 'copy';
-        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        return ctx.getImageData(0, 0, 1, 1).data;
-      }
-      
-      document.querySelector('#csscolors .hex').addEventListener('input', function (evt) {
-        var arr = csscolors_getColor(evt.target.value);
-        if (arr[3] === 255) arr = arr.slice(0,-1);
-        else {
-          // NOTE: we should divide by 255, but 256 yields nicer results…
-          var alpha = (100 * arr[3] / 256).toFixed(0) + '%';
-          arr = Array.prototype.slice.call(arr,0,-1).concat(alpha);
-        }
-        document.querySelector('#csscolors .rgb').value = [
-          (arr.length === 4) ? "rgba" : "rgb",
-          "(",arr.join(),")"
-        ].join('');
-      }, false);
-      document.querySelector('#csscolors .rgb').addEventListener('input', function (evt) {
-        var arr = csscolors_getColor(evt.target.value);
-        if (arr[3] === 255) arr = arr.slice(0,-1);
-        document.querySelector('#csscolors .hex').value = "#" + Array.prototype.map.call(arr, function (x,idx) {
-          return (0x100 + x).toString(16).slice(1);
-        }).join('');
       }, false);
     </script>
   </div>
