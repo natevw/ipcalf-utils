@@ -201,20 +201,6 @@
     <!-- TODO: https://en.wikipedia.org/wiki/Two-ray_ground-reflection_model -->
     <!-- and/or TODO: https://en.wikipedia.org/wiki/Line-of-sight_propagation -->
     <form>
-      <label>Loss: <input class=loss placeholder="FSPL"> dB</label><br/>
-      <label>Distance: <input class=dist placeholder="distance"> <select>
-        <option value="1e-3">millimeters</option>
-        <option value="1" selected>meters</option>
-        <option value="1e3">kilometers</option>
-        <option value="0.0254">inches</option>
-        <option value="0.3048">feet</option>
-        <option value="1609.344">miles</option>
-        <option value="6.3781e6"><abbr title="earth radius">R🜨</abbr></option>
-        <option value="3.84399e8"><abbr title="lunar distance">LD</abbr></option>
-        <option value="1.495978707e11"><abbr title="astronimcal unit">AU</abbr></option>
-        <option value="9.4607e15">lightyear</option>
-        <option value="3.0857e16">parsec</option>
-      </select></label><br/>
       <label>Frequency: <input class=freq placeholder="frequency"> <select>
         <option value="1e-3">mHz</option>
         <option value="1">Hz</option>
@@ -252,6 +238,20 @@
         <button type="button" data-freq="5.725e9 5.875e9">5.8GHz</button>
         <button type="button" data-freq="461.219e12">650nm laser</button>
       </fieldset>
+      <label>Distance: <input class=dist placeholder="distance"> <select>
+        <option value="1e-3">millimeters</option>
+        <option value="1" selected>meters</option>
+        <option value="1e3">kilometers</option>
+        <option value="0.0254">inches</option>
+        <option value="0.3048">feet</option>
+        <option value="1609.344">miles</option>
+        <option value="6.3781e6"><abbr title="earth radius">R🜨</abbr></option>
+        <option value="3.84399e8"><abbr title="lunar distance">LD</abbr></option>
+        <option value="1.495978707e11"><abbr title="astronimcal unit">AU</abbr></option>
+        <option value="9.4607e15">lightyear</option>
+        <option value="3.0857e16">parsec</option>
+      </select></label><br/>
+      <label>Loss: <input class=loss placeholder="FSPL"> dB</label><br/>
     </form>
     <script>+function () {
       var scopeEl = document.querySelector('#fspl'),
