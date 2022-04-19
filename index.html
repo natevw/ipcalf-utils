@@ -196,10 +196,121 @@
     </script>
   </div>
   
-  <div id=fspl>
-    <h2>Free-space path loss calculator</h2>
+  <div id=los>
+    <h2>Line-of-sight horizon distance calculator</h2>
     <!-- TODO: https://en.wikipedia.org/wiki/Two-ray_ground-reflection_model -->
     <!-- and/or TODO: https://en.wikipedia.org/wiki/Line-of-sight_propagation -->
+    <form>
+      <label>Earth radius: <select class=radius>
+        <option value="6.3781e6">Ignoring refraction (k=1)</option>
+        <option value="8.5041e6" selected>Effective radio (k=4/3)</option>
+      </select></label><br/>
+      <label>
+        Fixed height:
+        <input class="height h1" placeholder="altitude" value="0">
+        <select>
+          <option value="1" selected>meters</option>
+          <option value="1e3">kilometers</option>
+          <option value="0.3048">feet</option>
+          <option value="1609.344">miles</option>
+        </select>
+      </label><br/>
+      <label>
+        Target height:
+        <input class="height h2" placeholder="altitude">
+        <select>
+          <option value="1" selected>meters</option>
+          <option value="1e3">kilometers</option>
+          <option value="0.3048">feet</option>
+          <option value="1609.344">miles</option>
+        </select>
+      </label><br/>
+      <label>
+        Line of sight:
+        <input class=dist placeholder="distance">
+        <select>
+          <option value="1">meters</option>
+          <option value="1e3" selected>kilometers</option>
+          <option value="0.3048">feet</option>
+          <option value="1609.344">miles</option>
+        </select>
+      </label>
+    </form>
+    <script>+function () {
+      var scopeEl = document.querySelector('#los'),
+          radiusEl = scopeEl.querySelector('select.radius'),
+          fixHeightEl = scopeEl.querySelector('.height.h1'),
+          tgtHeightEl = scopeEl.querySelector('.height.h2'),
+          losDistEl = scopeEl.querySelector('.dist'),
+          fixMultEl = scopeEl.querySelector('.height.h1 + select'),
+          tgtMultEl = scopeEl.querySelector('.height.h2 + select'),
+          losMultEl = scopeEl.querySelector('.dist + select');
+      
+          
+      var radius;
+      function dth(alt) {
+        return Math.sqrt(2 * radius * alt + alt * alt);
+      }
+      function alt(dth) {
+        return Math.hypot(radius, dth) - radius;
+      }
+      
+      var fixMult, tgtMult, losMult;
+      function updateMultipliers() {
+        fixMult = +fixMultEl.value;
+        tgtMult = +tgtMultEl.value;
+        losMult = +losMultEl.value;
+        radius = +radiusEl.value;
+      }
+      function displayNum(n, P) {
+        var d = Math.abs(Math.log10(Math.abs(n)));
+        if (d > P) return n.toExponential(P);
+        else return n.toFixed(P);
+      }
+      
+      updateMultipliers();
+      fixHeightEl.addEventListener('input', function () {
+        tgtHeightEl.dispatchEvent(new Event('input'));
+      }, false);
+      tgtHeightEl.addEventListener('input', function () {
+        var h1 = +fixHeightEl.value * fixMult,
+            h2 = +tgtHeightEl.value * tgtMult,
+            los = dth(h1) + dth(h2);
+        losDistEl.value = displayNum(los / losMult, 4);
+      }, false);
+      losDistEl.addEventListener('input', function () {
+        var h1 = +fixHeightEl.value * fixMult,
+            los = +losDistEl.value * losMult,
+            h2 = alt(los - dth(h1));
+        tgtHeightEl.value = displayNum(h2 / tgtMult, 3);
+      }, false);
+      
+      radiusEl.addEventListener('change', function () {
+        updateMultipliers();
+        fixHeightEl.dispatchEvent(new Event('input'));
+      }, false);
+      
+      fixMultEl.addEventListener('change', function (evt) {
+        var h1 = +fixHeightEl.value * fixMult;
+        updateMultipliers();
+        fixHeightEl.value = displayNum(h1 / fixMult, 3);
+      }, false);
+      tgtMultEl.addEventListener('change', function (evt) {
+        var h1 = +tgtHeightEl.value * tgtMult;
+        updateMultipliers();
+        tgtHeightEl.value = displayNum(h1 / tgtMult, 3);
+      }, false);
+      losMultEl.addEventListener('change', function (evt) {
+        var h1 = +losDistEl.value * losMult;
+        updateMultipliers();
+        losDistEl.value = displayNum(h1 / losMult, 4);
+      }, false);
+      
+    }()</script>
+  </div>
+  
+  <div id=fspl>
+    <h2>Free-space path loss calculator</h2>
     <form>
       <label>Frequency: <input class=freq placeholder="frequency"> <select>
         <option value="1e-3">mHz</option>
