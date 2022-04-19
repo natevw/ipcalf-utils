@@ -279,7 +279,7 @@
         var loss = +lossEl.value,
             freq = +freqEl.value * freqMult;
         var dist = Math.pow(10, loss / 20 - Math.log10(freq * conv));
-        distEl.value = displayNum(dist, 3);
+        distEl.value = displayNum(dist / distMult, 3);
       }, false);
       distEl.addEventListener('input', function () {
         var dist = +distEl.value * distMult,
